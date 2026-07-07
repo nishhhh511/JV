@@ -1,0 +1,8 @@
+.vercel
+node_modules
+dist
+scratch
+.env
+.env.*
+.DS_Store
+*.log

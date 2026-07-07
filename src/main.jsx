@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -147,11 +147,11 @@ const timeline = [
 ];
 
 const statCards = [
-  ["0", "Matches Played"],
-  ["0+", "Runs Scored"],
-  ["0", "Highest Score"],
-  ["0.5", "Average"],
-  ["0", "Not Outs"],
+  ["150+", "Matches Played"],
+  ["3000+", "Runs Scored"],
+  ["100+", "Highest Score"],
+  ["25.0", "Average"],
+  ["20", "Not Outs"],
 ];
 
 const traits = [
@@ -621,7 +621,97 @@ function Gallery() {
 }
 
 function Contact() {
-  const [message, setMessage] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState({ type: "", text: "" });
+  const [isSending, setIsSending] = useState(false);
+  const clearStatusTimer = useRef(null);
+
+  // Place your EmailJS credentials in `.env` as VITE_EMAILJS_* variables.
+  // These values are configured in Vercel environment settings for production.
+  const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const emailjsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+  const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+  const resetStatusLater = (delay = 5000) => {
+    window.clearTimeout(clearStatusTimer.current);
+    clearStatusTimer.current = window.setTimeout(() => {
+      setStatus({ type: "", text: "" });
+    }, delay);
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    if (status.type === "error") {
+      setStatus({ type: "", text: "" });
+    }
+  };
+
+  const validateForm = () => {
+    if (!form.name.trim()) return "Name is required.";
+    if (!form.email.trim()) return "Please enter a valid email address.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return "Please enter a valid email address.";
+    if (!form.message.trim()) return "Message is required.";
+    return "";
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (isSending) return;
+
+    const validationError = validateForm();
+    if (validationError) {
+      setStatus({ type: "error", text: validationError });
+      return;
+    }
+
+    if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) {
+      setStatus({ type: "error", text: "Failed to send message. Please try again later." });
+      return;
+    }
+
+    setIsSending(true);
+    setStatus({ type: "", text: "" });
+
+    const templateParams = {
+      to_email: "vjai5894@gmail.com",
+      subject: "New Contact Form Submission - JV Website",
+      from_name: form.name.trim(),
+      from_email: form.email.trim(),
+      message: form.message.trim(),
+      body: `Name: ${form.name.trim()}\n\nEmail: ${form.email.trim()}\n\nMessage:\n${form.message.trim()}`,
+    };
+
+    try {
+      const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          service_id: emailjsServiceId,
+          template_id: emailjsTemplateId,
+          user_id: emailjsPublicKey,
+          template_params: templateParams,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`EmailJS request failed with status ${response.status}`);
+      }
+
+      setStatus({ type: "success", text: "Thank you! Your message has been sent successfully." });
+      setForm({ name: "", email: "", message: "" });
+      resetStatusLater(6000);
+    } catch (error) {
+      console.error("EmailJS submission failed:", error);
+      setStatus({ type: "error", text: "Failed to send message. Please try again later." });
+      resetStatusLater(6000);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <section id="contact" className="section-shell bg-[#060806]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -643,27 +733,30 @@ function Contact() {
               </div>
             ))}
           </div>
-          <form className="premium-card" onSubmit={(event) => event.preventDefault()}>
+          <form className="premium-card" onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <label className="grid gap-2 text-sm font-medium text-white">
                 Your Name
-                <input className="form-field" name="name" placeholder="Enter your name" />
+                <input className="form-field" name="name" placeholder="Enter your name" value={form.name} onChange={handleChange} />
               </label>
               <label className="grid gap-2 text-sm font-medium text-white">
                 Email Address
-                <input className="form-field" name="email" type="email" placeholder="your.email@example.com" />
+                <input className="form-field" name="email" type="email" placeholder="your.email@example.com" value={form.email} onChange={handleChange} />
               </label>
               <label className="grid gap-2 text-sm font-medium text-white">
                 Message
-                <textarea className="form-field min-h-32 resize-none" name="message" placeholder="Share your message or opportunity..." maxLength={5000} value={message} onChange={(event) => setMessage(event.target.value)} />
+                <textarea className="form-field min-h-32 resize-none" name="message" placeholder="Share your message or opportunity..." maxLength={5000} value={form.message} onChange={handleChange} />
               </label>
               <div className="flex justify-between text-xs text-zinc-500">
-                <span>{message.length} characters</span>
-                <span>{5000 - message.length} remaining</span>
+                <span>{form.message.length} characters</span>
+                <span>{5000 - form.message.length} remaining</span>
               </div>
-              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-yellow-400 px-6 py-3 font-semibold text-black hover:shadow-lg hover:shadow-green-500/20">
-                Send Message <ArrowIcon className="h-5 w-5" />
+              <button type="submit" disabled={isSending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-yellow-400 px-6 py-3 font-semibold text-black hover:shadow-lg hover:shadow-green-500/20 disabled:cursor-not-allowed disabled:opacity-70">
+                {isSending ? "Sending..." : "Send Message"} <ArrowIcon className="h-5 w-5" />
               </button>
+              {status.text ? (
+                <p className={`text-sm font-medium ${status.type === "success" ? "text-green-400" : "text-red-400"}`}>{status.text}</p>
+              ) : null}
             </div>
           </form>
         </div>
