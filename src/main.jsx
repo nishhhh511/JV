@@ -187,17 +187,6 @@ const certificates = [
     image: "/assets/certificate-2.jpeg",
   },
   {
-    level: "District",
-    kind: "Briefing",
-    title: "Official Briefing & Kit Selection",
-    body: "Karnataka Cricket Board",
-    role: "Briefing & Kit Distribution",
-    date: "October 25, 2025",
-    place: "District Cricket Ground, Bengaluru",
-    issuer: "District Selection Committee",
-    image: "/assets/certificate-3.jpeg",
-  },
-  {
     level: "National",
     kind: "Championship",
     title: "8th All India National Goa Gold Cup",
@@ -206,7 +195,29 @@ const certificates = [
     date: "October 19-22, 2021",
     place: "Madgaon, Goa",
     issuer: "T20 Cricket Association Goa",
+    image: "/assets/certificate-3.jpeg",
+  },
+  {
+    level: "Local",
+    kind: "Match Performance",
+    title: "Kioc Wolves Triumph Over YPR Bulls",
+    body: "CricHeroes Times News",
+    role: "Best Batter (35 runs off 28 balls)",
+    date: "May 6, 2026",
+    place: "Bengaluru, Karnataka",
+    issuer: "CricHeroes Times",
     image: "/assets/certificate-4.jpeg",
+  },
+  {
+    level: "Local",
+    kind: "Match Performance",
+    title: "Neon Aura Triumphs Over Neon Genesis",
+    body: "CricHeroes Times News",
+    role: "Star Performer (39 runs off 30 balls)",
+    date: "May 7, 2026",
+    place: "Bengaluru, Karnataka",
+    issuer: "CricHeroes Times",
+    image: "/assets/certificate-5.jpeg",
   },
 ];
 
@@ -516,6 +527,18 @@ function Stats() {
 }
 
 function Achievements() {
+  const [activeIdx, setActiveIdx] = useState(null);
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setActiveIdx((prev) => (prev === 0 ? certificates.length - 1 : prev - 1));
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setActiveIdx((prev) => (prev === certificates.length - 1 ? 0 : prev + 1));
+  };
+
   return (
     <section className="section-shell bg-[#060806]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -525,10 +548,22 @@ function Achievements() {
           <p className="section-copy">Official recognitions, selections, and media features documenting the journey of dedication and achievement.</p>
         </div>
         <div className="grid gap-5 md:grid-cols-2">
-          {certificates.map((item) => (
+          {certificates.map((item, index) => (
             <article key={item.title} className="premium-card overflow-hidden p-0">
               <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
-                <img src={item.image} alt={item.title} className="h-full min-h-64 w-full object-cover" loading="lazy" />
+                <div 
+                  className="relative group cursor-pointer overflow-hidden h-full min-h-64 flex items-center justify-center bg-black/40"
+                  onClick={() => setActiveIdx(index)}
+                >
+                  <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="rounded-full bg-white/20 backdrop-blur-md p-3 text-white border border-white/30 shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300">
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
                 <div className="p-6">
                   <div className="mb-5 flex flex-wrap gap-2">
                     <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-300">{item.level}</span>
@@ -549,10 +584,10 @@ function Achievements() {
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ["4", "Certificates"],
+            ["5", "Total Features"],
             ["1", "Championships"],
-            ["1", "State Selections"],
-            ["2", "District Selections"],
+            ["2", "State & District"],
+            ["2", "Media Clippings"],
           ].map(([value, label]) => (
             <div key={label} className="stat-tile">
               <div>{value}</div>
@@ -561,6 +596,76 @@ function Achievements() {
           ))}
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {activeIdx !== null && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md transition-opacity duration-300"
+          onClick={() => setActiveIdx(null)}
+        >
+          {/* Close button */}
+          <button 
+            type="button"
+            className="absolute right-6 top-6 z-[110] rounded-full bg-white/10 p-3 text-white backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={() => setActiveIdx(null)}
+            aria-label="Close lightbox"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Navigation Arrows */}
+          <button 
+            type="button"
+            className="absolute left-6 top-1/2 z-[110] -translate-y-1/2 rounded-full bg-white/10 p-4 text-white backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={handlePrev}
+            aria-label="Previous image"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <button 
+            type="button"
+            className="absolute right-6 top-1/2 z-[110] -translate-y-1/2 rounded-full bg-white/10 p-4 text-white backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={handleNext}
+            aria-label="Next image"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Image & Caption Wrapper */}
+          <div 
+            className="relative flex max-h-[90vh] max-w-[90vw] flex-col items-center justify-center scale-95 transition-all duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={certificates[activeIdx].image} 
+              alt={certificates[activeIdx].title} 
+              className="max-h-[70vh] max-w-[80vw] rounded-lg object-contain shadow-2xl border border-white/10"
+            />
+            
+            {/* Info details overlay at bottom */}
+            <div className="mt-4 rounded-xl border border-white/10 bg-black/60 p-4 text-center backdrop-blur-md max-w-lg w-full">
+              <div className="mb-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                <span className="rounded-full bg-green-500/20 px-2.5 py-0.5 text-green-300">{certificates[activeIdx].level}</span>
+                <span className="rounded-full bg-yellow-400/20 px-2.5 py-0.5 text-yellow-300">{certificates[activeIdx].kind}</span>
+              </div>
+              <h3 className="text-lg font-black text-white">{certificates[activeIdx].title}</h3>
+              <p className="mt-1 text-xs text-green-400 font-semibold">{certificates[activeIdx].body}</p>
+              <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-zinc-400">
+                <span><strong className="text-zinc-500">Role:</strong> {certificates[activeIdx].role}</span>
+                <span><strong className="text-zinc-500">Date:</strong> {certificates[activeIdx].date}</span>
+                <span><strong className="text-zinc-500">Issuer:</strong> {certificates[activeIdx].issuer}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
